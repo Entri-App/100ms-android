@@ -85,6 +85,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.Fragment
+
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -106,7 +107,6 @@ import com.bumptech.glide.integration.compose.placeholder
 import com.otaliastudios.zoom.ZoomSurfaceView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import live.hms.roomkit.R
 import live.hms.hls_player.*
 import live.hms.roomkit.databinding.HlsFragmentLayoutBinding
 import live.hms.roomkit.databinding.LayoutChatMergeBinding
@@ -152,6 +152,7 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.seconds
+
 
 
 /**
@@ -585,7 +586,7 @@ fun ChatHeader(
                         lineHeight = 24.sp,
                         fontFamily = FontFamily(Font(live.hms.prebuilt_themes.R.font.inter_semibold)),
                         fontWeight = FontWeight(600),
-                        color = OnSurfaceHigh,
+                        color = Variables.OnSurfaceHigh,
                         letterSpacing = 0.15.sp,
                     )
                     Spacer(Modifier.weight(1f))
@@ -593,7 +594,7 @@ fun ChatHeader(
                         modifier = Modifier.pointerInput(Unit) {
                             detectTapGestures(onTap = { chatDescriptionMoreClicked() })
                         },
-                        painter = painterResource(id = R.drawable.hls_about_description_down_chevron),
+                        painter = painterResource(id = live.hms.roomkit.R.drawable.hls_about_description_down_chevron),
                         contentDescription = "collapse"
                     )
                 }
@@ -642,7 +643,7 @@ fun ChatHeader(
                                 fontFamily = FontFamily(Font(live.hms.prebuilt_themes.R.font.inter_semibold)),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight(600),
-                                color = OnSurfaceHigh,
+                                color = Variables.OnSurfaceHigh,
                         )
 
                         ClickableText(text = buildAnnotatedString {
@@ -759,7 +760,7 @@ fun ChatMessage(name: String, message: String) {
                 lineHeight = 20.sp,
                 fontFamily = FontFamily(Font(live.hms.prebuilt_themes.R.font.inter_regular)),
                 fontWeight = FontWeight(600),
-                color = OnSurfaceHigh,
+                color = Variables.OnSurfaceHigh,
                 letterSpacing = 0.1.sp,
             )
         )
@@ -769,7 +770,7 @@ fun ChatMessage(name: String, message: String) {
                 lineHeight = 20.sp,
                 fontFamily = FontFamily(Font(live.hms.prebuilt_themes.R.font.inter_regular)),
                 fontWeight = FontWeight(400),
-                color = OnSurfaceHigh,
+                color = Variables.OnSurfaceHigh,
                 letterSpacing = 0.25.sp,
             )
         )
@@ -822,7 +823,7 @@ fun GoLiveText(isLive : Boolean, behindBy: String, goLiveClicked : () -> Unit) {
 
         Image(
             painter = painterResource(id =
-            if(isLive) R.drawable.hls_live_dot else  R.drawable.hls_go_live_dot),
+            if(isLive) live.hms.roomkit.R.drawable.hls_live_dot else  live.hms.roomkit.R.drawable.hls_go_live_dot),
             contentDescription = "Gray",
             modifier = Modifier
                 // Margin right
@@ -836,7 +837,7 @@ fun GoLiveText(isLive : Boolean, behindBy: String, goLiveClicked : () -> Unit) {
                 lineHeight = 24.sp,
                 fontFamily = FontFamily(Font(live.hms.prebuilt_themes.R.font.inter_regular)),
                 fontWeight = FontWeight(600),
-                color = if(isLive) OnSurfaceHigh else Variables.OnSurfaceMedium,
+                color = if(isLive) Variables.OnSurfaceHigh else Variables.OnSurfaceMedium,
                 letterSpacing = 0.5.sp,
             )
         )
@@ -851,7 +852,7 @@ fun GoLiveText(isLive : Boolean, behindBy: String, goLiveClicked : () -> Unit) {
                     lineHeight = 24.sp,
                     fontFamily = FontFamily(Font(live.hms.prebuilt_themes.R.font.inter_regular)),
                     fontWeight = FontWeight(600),
-                    color = if(isLive) OnSurfaceHigh else Variables.OnSurfaceMedium,
+                    color = if(isLive) Variables.OnSurfaceHigh else Variables.OnSurfaceMedium,
                     letterSpacing = 0.5.sp,
                 )
             )
@@ -863,7 +864,7 @@ fun MaximizeButton(
     onClickAction: () -> Unit,
     isMaximized : Boolean
 ) {
-    Image(painter = painterResource(id = if(isMaximized) R.drawable.hls_minimize else R.drawable.hls_maximize),
+    Image(painter = painterResource(id = if(isMaximized) live.hms.roomkit.R.drawable.hls_minimize else live.hms.roomkit.R.drawable.hls_maximize),
         contentScale = ContentScale.None,
         contentDescription = "Maximize Video",
         modifier = Modifier
@@ -875,7 +876,7 @@ fun MaximizeButton(
 fun SettingsButton(
     onClickAction: () -> Unit
 ) {
-    Image(painter = painterResource(id = R.drawable.settings),
+    Image(painter = painterResource(id = live.hms.roomkit.R.drawable.settings),
         contentDescription = "Layer Select",
         modifier = Modifier
             .clickable { onClickAction() }
@@ -1119,7 +1120,7 @@ fun DvrControls(modifier: Modifier, player: HmsHlsPlayer, playPauseButton : @Com
                 .wrapContentSize()
                 .padding(top = Spacing1), factory = {
                 (LayoutInflater.from(it)
-                    .inflate(R.layout.player_controls, null) as PlayerControlView)
+                    .inflate(live.hms.roomkit.R.layout.player_controls, null) as PlayerControlView)
                     .apply {
                         setPlayer(player.getNativePlayer())
                         this.findViewById<LinearLayout>(androidx.media3.ui.R.id.exo_center_controls).visibility =
@@ -1155,7 +1156,7 @@ fun DvrControls(modifier: Modifier, player: HmsHlsPlayer, playPauseButton : @Com
 
 @Composable
 fun SessionOptionsButton(onClick: () -> Unit) {
-    Image(painter = painterResource(id = R.drawable.compose_hls_hamburger_menu),
+    Image(painter = painterResource(id = live.hms.roomkit.R.drawable.compose_hls_hamburger_menu),
         contentDescription = "Menu",
         contentScale = ContentScale.None,
         modifier = Modifier
@@ -1165,7 +1166,7 @@ fun SessionOptionsButton(onClick: () -> Unit) {
 
 @Composable
 fun HandRaiseButton(isHandRaised : Boolean, onClick: () -> Unit) {
-    Image(painter = painterResource(id = if(isHandRaised) R.drawable.compose_hls_hand_on else R.drawable.compose_hls_hand_off),
+    Image(painter = painterResource(id = if(isHandRaised) live.hms.roomkit.R.drawable.compose_hls_hand_on else live.hms.roomkit.R.drawable.compose_hls_hand_off),
         contentDescription = "Close",
         contentScale = ContentScale.None,
         modifier = Modifier
@@ -1177,7 +1178,7 @@ fun HandRaiseButton(isHandRaised : Boolean, onClick: () -> Unit) {
 
 @Composable
 fun CloseButton(onCloseButtonClicked: () -> Unit) {
-    Image(painter = painterResource(id = R.drawable.hls_close_button),
+    Image(painter = painterResource(id = live.hms.roomkit.R.drawable.hls_close_button),
         contentDescription = "Close",
         contentScale = ContentScale.None,
         modifier = Modifier
@@ -1190,7 +1191,7 @@ fun CloseButton(onCloseButtonClicked: () -> Unit) {
 @Composable
 fun ClosedCaptionsButton(closedCaptionsToggleClicked: () -> Unit, closedCaptionsEnabled : Boolean) {
     Image(painter =
-    painterResource(id = if(closedCaptionsEnabled) R.drawable.hls_closed_caption_button else R.drawable.hls_closed_captions_disabled),
+    painterResource(id = if(closedCaptionsEnabled) live.hms.roomkit.R.drawable.hls_closed_caption_button else live.hms.roomkit.R.drawable.hls_closed_captions_disabled),
         contentDescription = "Closed Captions",
         contentScale = ContentScale.None,
         modifier = Modifier
@@ -1254,9 +1255,9 @@ fun ChatUI(
         }
         meetingViewModel.isHandRaised.observe(viewLifecycleOwner) {handRaised ->
             if(handRaised)
-                handRaise.setImageResource(R.drawable.hand_off)
+                handRaise.setImageResource(live.hms.roomkit.R.drawable.hand_off)
             else
-                handRaise.setImageResource(R.drawable.hand_on)
+                handRaise.setImageResource(live.hms.roomkit.R.drawable.hand_on)
 
         }
         handRaise.setOnClickListener {
@@ -1329,7 +1330,7 @@ fun ChatUI(
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
     AndroidView({
-        val view = LayoutInflater.from(context).inflate(R.layout.layout_chat_merge, null)
+        val view = LayoutInflater.from(context).inflate(live.hms.roomkit.R.layout.layout_chat_merge, null)
         with(LayoutChatMergeBinding.bind(view)) {
             applyTheme()
             chatRelatedObservers(this, lifecycleOwner)
@@ -1338,7 +1339,7 @@ fun ChatUI(
     }, modifier = Modifier
         .fillMaxWidth()
         .fillMaxHeight(), update = {
-            it.findViewById<ImageView>(R.id.handRaise).visibility = if(allowHandRaise) View.VISIBLE else View.GONE
+            it.findViewById<ImageView>(live.hms.roomkit.R.id.handRaise).visibility = if(allowHandRaise) View.VISIBLE else View.GONE
     })
 }
 
@@ -1362,13 +1363,13 @@ fun OrientationSwapper(
 fun ForwardButton(isDisabled : Boolean, buttonClicked: () -> Unit) {
     BaseButton(buttonClicked = {if(!isDisabled) {
         buttonClicked()
-    }}, id = if(!isDisabled) R.drawable.hls_forward_arrow else R.drawable.forward_arrow_dimmed, description = "Forward 15 seconds")
+    }}, id = if(!isDisabled) live.hms.roomkit.R.drawable.hls_forward_arrow else live.hms.roomkit.R.drawable.forward_arrow_dimmed, description = "Forward 15 seconds")
 }
 @Composable
 fun RewindButton(buttonClicked : () -> Unit) {
     BaseButton(
         buttonClicked = buttonClicked,
-        id = R.drawable.hls_backward_arrow,
+        id = live.hms.roomkit.R.drawable.hls_backward_arrow,
         description = "Rewind ten seconds"
     )
 }
@@ -1391,7 +1392,7 @@ fun PlayPauseButton(buttonClicked : () -> Unit, isPlaying : Boolean?) {
         modifier = Modifier
             .clickable { buttonClicked() }
             .size(64.dp),
-        painter = painterResource(id = if(isPlaying == true) R.drawable.exo_styled_controls_pause else R.drawable.exo_styled_controls_play),
+        painter = painterResource(id = if(isPlaying == true) live.hms.roomkit.R.drawable.exo_styled_controls_pause else live.hms.roomkit.R.drawable.exo_styled_controls_play),
         contentDescription = "Play",
         contentScale = ContentScale.None
     )
@@ -1409,7 +1410,7 @@ fun HlsChatIcon(chatEnabled: Boolean, unreadMessages :Int?, buttonClicked: () ->
     if (chatEnabled) {
         Box(contentAlignment = TopEnd) {
             Image(painter =
-            painterResource(id = R.drawable.hls_chat_off),
+            painterResource(id = live.hms.roomkit.R.drawable.hls_chat_off),
                 contentDescription = "Chat Open",
                 contentScale = ContentScale.None,
                 modifier = Modifier
