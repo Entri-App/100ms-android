@@ -285,4 +285,6 @@
     <string name="call_notification_channel_description">Shows when you\'re in an active call</string>
     <string name="call_notification_title">Call in progress</string>
     <string name="call_notification_text">Tap to return to the call</string>
+    <string name="preview_screen_icon_disabled_toast_text">No audio or video is allowed; please use the hand-raise feature to ask questions.</string>
+    <string name="welcome_text">Welcome to</string>
 </resources>
