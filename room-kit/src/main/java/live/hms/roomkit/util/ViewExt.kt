@@ -126,14 +126,14 @@ fun Context.showTileListDialog(
   val spotlightLabel = if (peerName != null) "Spotlight \"$peerName\" for everyone" else "Spotlight for everyone"
   val intentList = mutableListOf("Screen Capture", "Mirror")
   if (isLocalTrack.not())
-    intentList+= "Simulcast"
+    intentList+= "Quality"
   if (onSpotlight != null)
     intentList+= spotlightLabel
   builder.setItems(intentList.toTypedArray()) { _, which ->
     when (intentList[which]) {
       "Screen Capture" -> onScreenCapture.invoke()
       "Mirror" -> onMirror()
-      "Simulcast" -> onSimulcast.invoke()
+      "Quality" -> onSimulcast.invoke()
       spotlightLabel -> onSpotlight?.invoke()
     }
   }
