@@ -429,7 +429,14 @@ class MeetingFragment : Fragment() {
         requireActivity().finish()
     }
 
-    private fun updateRecordingViews(state: HMSRecordingState) {
+    private fun updateRecordingViews(state: HMSRecordingState, shouldShowRecordingIcons : Boolean?) {
+        if (shouldShowRecordingIcons == false){
+            binding.recordingSignalProgress.visibility = View.GONE
+            binding.recordingSignal.visibility = View.GONE
+            binding.recordingPause.visibility = View.GONE
+            return
+        }
+
         when (state) {
             HMSRecordingState.STARTING -> {
                 binding.recordingSignalProgress.visibility = View.VISIBLE
@@ -465,7 +472,10 @@ class MeetingFragment : Fragment() {
 
             HMSStreamingState.STARTED -> {
                 binding.meetingFragmentProgress.visibility = View.GONE
-                binding.liveTitleCard.visibility = View.VISIBLE
+
+                /** binding.liveTitleCard.visibility = View.VISIBLE **/
+                binding.liveTitleCard.visibility = if (meetingViewModel.isLiveIconEnabled==false) View.GONE else View.VISIBLE
+
                 if (meetingViewModel.isRTMPRunning()) {
                     binding.liveTitle.text = "Live with RTMP"
                 } else {
@@ -531,7 +541,7 @@ class MeetingFragment : Fragment() {
         }
 
         meetingViewModel.recordingState.observe(viewLifecycleOwner) { state ->
-            updateRecordingViews(state)
+            updateRecordingViews(state , meetingViewModel.isRecordingIconsEnabled)
         }
 
         meetingViewModel.streamingState.observe(viewLifecycleOwner) { state ->
@@ -1398,16 +1408,30 @@ class MeetingFragment : Fragment() {
             if (it.isEnabled) meetingViewModel.flipCamera()
         }
 
-        if (meetingViewModel.getHmsRoomLayout()?.data?.getOrNull(0)?.logo?.url.isNullOrEmpty()) {
-            binding.logoIv?.visibility = View.GONE
-        } else {
+        if (!meetingViewModel.roomLogoUrl.isNullOrEmpty()){
             binding.logoIv.visibility = View.VISIBLE
             binding.logoIv.let {
                 Glide.with(this)
-                    .load(meetingViewModel.getHmsRoomLayout()?.data?.getOrNull(0)?.logo?.url)
+                    .load(meetingViewModel.roomLogoUrl)
                     .into(it)
             }
+        }else{
+            binding.logoIv.visibility = View.GONE
         }
+
+        /***
+        if (meetingViewModel.getHmsRoomLayout()?.data?.getOrNull(0)?.logo?.url.isNullOrEmpty()) {
+        binding.logoIv?.visibility = View.GONE
+        } else {
+        binding.logoIv.visibility = View.VISIBLE
+        binding.logoIv.let {
+        Glide.with(this)
+        .load(meetingViewModel.getHmsRoomLayout()?.data?.getOrNull(0)?.logo?.url)
+        .into(it)
+        }
+        }
+         ***/
+
     }
 
     private fun isOverlayChatVisible() : Boolean {
