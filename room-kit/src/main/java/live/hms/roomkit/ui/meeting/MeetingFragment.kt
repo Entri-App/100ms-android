@@ -332,27 +332,33 @@ class MeetingFragment : Fragment() {
         requireActivity().finish()
     }
 
-    private fun updateRecordingViews(state: HMSRecordingState) {
-        when (state) {
-            HMSRecordingState.STARTING -> {
-                binding.recordingSignalProgress.visibility = View.VISIBLE
-                binding.recordingSignal.visibility = View.GONE
-                binding.recordingPause.visibility = View.GONE
-            }
-            HMSRecordingState.RESUMED, HMSRecordingState.STARTED -> {
-                binding.recordingSignalProgress.visibility = View.GONE
-                binding.recordingSignal.visibility = View.VISIBLE
-                binding.recordingPause.visibility = View.GONE
-            }
-            HMSRecordingState.PAUSED -> {
-                binding.recordingSignalProgress.visibility = View.GONE
-                binding.recordingSignal.visibility = View.GONE
-                binding.recordingPause.visibility = View.VISIBLE
-            }
-            HMSRecordingState.FAILED, HMSRecordingState.NONE, HMSRecordingState.STOPPED -> {
-                binding.recordingSignalProgress.visibility = View.GONE
-                binding.recordingSignal.visibility = View.GONE
-                binding.recordingPause.visibility = View.GONE
+    private fun updateRecordingViews(state: HMSRecordingState , isRecordingIconsEnabled : Boolean?) {
+        if (isRecordingIconsEnabled==false){
+            binding.recordingSignalProgress.visibility = View.GONE
+            binding.recordingSignal.visibility = View.GONE
+            binding.recordingPause.visibility = View.GONE
+        }else{
+            when (state) {
+                HMSRecordingState.STARTING -> {
+                    binding.recordingSignalProgress.visibility = View.VISIBLE
+                    binding.recordingSignal.visibility = View.GONE
+                    binding.recordingPause.visibility = View.GONE
+                }
+                HMSRecordingState.RESUMED, HMSRecordingState.STARTED -> {
+                    binding.recordingSignalProgress.visibility = View.GONE
+                    binding.recordingSignal.visibility = View.VISIBLE
+                    binding.recordingPause.visibility = View.GONE
+                }
+                HMSRecordingState.PAUSED -> {
+                    binding.recordingSignalProgress.visibility = View.GONE
+                    binding.recordingSignal.visibility = View.GONE
+                    binding.recordingPause.visibility = View.VISIBLE
+                }
+                HMSRecordingState.FAILED, HMSRecordingState.NONE, HMSRecordingState.STOPPED -> {
+                    binding.recordingSignalProgress.visibility = View.GONE
+                    binding.recordingSignal.visibility = View.GONE
+                    binding.recordingPause.visibility = View.GONE
+                }
             }
         }
     }
@@ -368,7 +374,14 @@ class MeetingFragment : Fragment() {
 
             HMSStreamingState.STARTED -> {
                 binding.meetingFragmentProgress.visibility = View.GONE
-                binding.liveTitleCard.visibility = View.VISIBLE
+
+                /** binding.liveTitleCard.visibility = View.VISIBLE **/
+                if (meetingViewModel.isLiveIconsEnabled==true){
+                    binding.liveTitleCard.visibility = View.VISIBLE
+                }else{
+                    binding.liveTitleCard.visibility = View.GONE
+                }
+
                 if (meetingViewModel.isRTMPRunning()) {
                     binding.liveTitle.text = "Live with RTMP"
                 } else {
@@ -434,7 +447,7 @@ class MeetingFragment : Fragment() {
         }
 
         meetingViewModel.recordingState.observe(viewLifecycleOwner) { state ->
-            updateRecordingViews(state)
+            updateRecordingViews(state,meetingViewModel.isLiveIconsEnabled)
         }
 
         meetingViewModel.streamingState.observe(viewLifecycleOwner) { state ->
@@ -1233,7 +1246,18 @@ class MeetingFragment : Fragment() {
             if (it.isEnabled) meetingViewModel.flipCamera()
         }
 
-        if (meetingViewModel.getHmsRoomLayout()?.data?.getOrNull(0)?.logo?.url.isNullOrEmpty()) {
+        if (!meetingViewModel.roomLogoUrl.isNullOrEmpty()){
+            binding.logoIv.let {
+                Glide.with(this)
+                    .load(meetingViewModel.roomLogoUrl)
+                    .into(it)
+            }
+        }else{
+            binding.logoIv.visibility = View.GONE
+        }
+
+        /***
+          if (meetingViewModel.getHmsRoomLayout()?.data?.getOrNull(0)?.logo?.url.isNullOrEmpty()) {
             binding.logoIv?.visibility = View.GONE
         } else {
             binding.logoIv.visibility = View.VISIBLE
@@ -1243,6 +1267,8 @@ class MeetingFragment : Fragment() {
                     .into(it)
             }
         }
+         ***/
+
     }
 
     private fun isOverlayChatVisible() : Boolean {
