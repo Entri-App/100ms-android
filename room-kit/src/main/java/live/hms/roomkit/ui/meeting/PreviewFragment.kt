@@ -264,7 +264,19 @@ class PreviewFragment : Fragment() {
             binding.descriptionTv.startBounceAnimationUpwards()
         }
 
-        if (meetingViewModel.getHmsRoomLayout()?.getCurrentRoleData(roleName)?.logo?.url.isNullOrEmpty()) {
+        if(!meetingViewModel.roomLogoUrl.isNullOrEmpty()){
+            binding.logoIv.visibility = View.VISIBLE
+            Glide.with(this)
+                .load(meetingViewModel.roomLogoUrl)
+                .into(binding.logoIv);
+            introAnimationOffset += 50
+            binding.logoIv.startBounceAnimationUpwards()
+        }else{
+            binding.logoIv.visibility = View.INVISIBLE
+        }
+
+        /***
+          if (meetingViewModel.getHmsRoomLayout()?.getCurrentRoleData(roleName)?.logo?.url.isNullOrEmpty()) {
             binding.logoIv.visibility = View.INVISIBLE
         } else {
             binding.logoIv.visibility = View.VISIBLE
@@ -274,7 +286,7 @@ class PreviewFragment : Fragment() {
             introAnimationOffset += 50
             binding.logoIv.startBounceAnimationUpwards()
 
-        }
+        }***/
     }
 
     private fun setupKeyboardAnimation() {
