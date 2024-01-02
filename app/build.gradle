@@ -58,8 +58,9 @@ dependencies {
     implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
+    implementation project(path: ':room-kit')
     //100ms.live prebuilt lib
-    implementation "live.100ms:room-kit:$HMS_ROOM_KIT_VERSION"
+    //implementation "live.100ms:room-kit:$HMS_ROOM_KIT_VERSION"
 
     // Navigation
     implementation "androidx.navigation:navigation-fragment-ktx:2.4.0"

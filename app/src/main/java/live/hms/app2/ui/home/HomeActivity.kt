@@ -3,6 +3,7 @@ package live.hms.app2.ui.home
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
@@ -33,11 +34,13 @@ class HomeActivity : AppCompatActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    Log.i("ASWIN::", "onCreate: ", )
     _binding = ActivityHomeBinding.inflate(layoutInflater)
 
     setContentView(binding.root)
     setSupportActionBar(binding.toolbar)
     supportActionBar?.setDisplayShowTitleEnabled(false)
+
 
     // TODO: Enable turn screen on / FLAG_SHOW_WHEN_LOCKED
   }

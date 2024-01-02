@@ -133,6 +133,7 @@ class MeetingFragment : Fragment() {
         super.onResume()
         isCountdownManuallyCancelled = false
         setupStreamingTimeView()
+        Log.d("ASWIN::", "onResume:------> ")
         settings.registerOnSharedPreferenceChangeListener(onSettingsChangeListener)
     }
 
@@ -265,7 +266,7 @@ class MeetingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.applyTheme()
-
+        Log.d("ASWIN::", "onViewCreated:------> ")
         if (savedInstanceState != null) {
             // Recreated Fragment
             meetingViewModel.roomLayoutLiveData.observe(viewLifecycleOwner) {success ->
@@ -486,6 +487,7 @@ class MeetingFragment : Fragment() {
         }
 
         meetingViewModel.meetingViewMode.observe(viewLifecycleOwner) {
+            Log.d("ASWIN::", "initObservers:---->${it.titleResId} ")
             updateMeetingViewMode(it)
             Log.d(TAG, "Meeting view mode changed to $it")
             requireActivity().invalidateOptionsMenu()
@@ -793,15 +795,22 @@ class MeetingFragment : Fragment() {
                 || currentFragment !is HlsFragment && mode is MeetingViewMode.HLS_VIEWER)
         val triggerFirstUpdate = !this::currentFragment.isInitialized
 
+        Log.d("ASWIN::", "updateMeetingViewMode:------>$mode ")
         currentFragment = when (mode) {
-            MeetingViewMode.GRID -> VideoGridFragment()
+            MeetingViewMode.GRID -> {
+                Log.d("ASWIN::", "updateMeetingViewMode:---->GRID ")
+                VideoGridFragment()
+            }
             MeetingViewMode.PINNED -> PinnedVideoFragment()
             MeetingViewMode.ACTIVE_SPEAKER -> ActiveSpeakerFragment()
             MeetingViewMode.AUDIO_ONLY -> AudioModeFragment()
-            is MeetingViewMode.HLS_VIEWER -> HlsFragment().apply {
-                arguments = bundleOf(
-                    "hlsStreamUrl" to mode.url
-                )
+            is MeetingViewMode.HLS_VIEWER -> {
+                Log.d("ASWIN::", "updateMeetingViewMode:---->HLS ")
+                HlsFragment().apply {
+                    arguments = bundleOf(
+                        "hlsStreamUrl" to mode.url
+                    )
+                }
             }
         }
 

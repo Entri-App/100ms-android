@@ -754,7 +754,9 @@ class MeetingViewModel(
 
                 // get the hls URL from the Room, if it exists
                 val hlsUrl = room.hlsStreamingState.variants?.get(0)?.hlsStreamUrl
+                Log.d("ASWIN::", "onJoin:url--->$hlsUrl ")
                 switchToHlsViewIfRequired(room.localPeer?.hmsRole, hlsUrl)
+
 
                 val runningStreamingStates = listOf(HMSStreamingState.STARTED, HMSStreamingState.STARTING)
                 val runningRecordingStates = listOf(HMSRecordingState.STARTING, HMSRecordingState.STARTED, HMSRecordingState.PAUSED, HMSRecordingState.RESUMED)

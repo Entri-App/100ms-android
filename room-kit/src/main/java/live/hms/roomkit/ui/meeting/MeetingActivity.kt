@@ -2,6 +2,7 @@ package live.hms.roomkit.ui.meeting
 
 import android.Manifest.permission.BLUETOOTH_CONNECT
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
@@ -67,6 +68,7 @@ class MeetingActivity : AppCompatActivity() {
         setContentView(binding.root)
         supportActionBar?.setDisplayShowTitleEnabled(false)
         settingsStore = SettingsStore(this)
+        Log.d("ASWIN::", "onCreate:Activity---> ")
 
         val deferringInsetsListener = RootViewDeferringInsetsCallback(
             persistentInsetTypes = WindowInsetsCompat.Type.systemBars(),
