@@ -108,6 +108,7 @@ class MeetingViewModel(
         private set
 
     var roomLogoUrl : String? = null
+    var liveClassName : String? = null
     var isLiveIconEnabled : Boolean? = null
     var isRecordingIconsEnabled : Boolean? = null
 
