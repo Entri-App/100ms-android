@@ -1,10 +1,12 @@
 package live.hms.roomkit.ui.meeting
 
 import android.Manifest.permission.POST_NOTIFICATIONS
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -38,6 +40,7 @@ import live.hms.roomkit.util.ROOM_CODE
 import live.hms.roomkit.util.ROOM_PREBUILT
 import live.hms.roomkit.util.TOKEN
 import live.hms.roomkit.util.init
+
 
 class MeetingActivity : AppCompatActivity() {
 
@@ -111,6 +114,11 @@ class MeetingActivity : AppCompatActivity() {
                     requestPermissionLauncher.launch(event.permissions)
                 }
             }
+        }
+
+        onBackPressedDispatcher.addCallback(this) {
+            setResultLeave(false)
+            finish()
         }
     }
 
@@ -328,9 +336,16 @@ class MeetingActivity : AppCompatActivity() {
         else {
             // Leave the meeting
             meetingViewModel.leaveMeeting(null)
+            setResultLeave(true)
             // Close our activity to return to whatever the user had before
             finish()
         }
+    }
+
+    private fun setResultLeave(isLeaved :Boolean){
+        val resultIntent = Intent()
+        resultIntent.putExtra("is_meeting_leaved", isLeaved)
+        setResult(RESULT_OK, resultIntent)
     }
 
 }
