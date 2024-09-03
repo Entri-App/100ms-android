@@ -26,6 +26,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity.RESULT_OK
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -425,7 +426,9 @@ class MeetingFragment : Fragment() {
                 activity?.moveTaskToBack(false)
             }
         }
-
+        val resultIntent = Intent()
+        resultIntent.putExtra("is_meeting_leaved", true)
+        requireActivity().setResult(RESULT_OK, resultIntent)
         requireActivity().finish()
     }
 
