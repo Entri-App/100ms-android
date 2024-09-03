@@ -2,6 +2,7 @@ package live.hms.roomkit.ui
 
 import android.app.Activity
 import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.ContextCompat.startActivity
 import live.hms.roomkit.ui.diagnostic.DiagnosticActivity
 import live.hms.roomkit.ui.meeting.MeetingActivity
@@ -60,6 +61,29 @@ object HMSRoomKit {
             putExtra(PREVIEW_SCREEN_STATUS, isPreviewScreenEnabled)
             putExtra(LIVE_CLASS_NAME, liveClassName)
             startActivity(activity, this, null)
+        }
+    }
+
+    fun launchPrebuiltUsingActivityResultLauncher(
+        token: String,
+        activity: Activity,
+        options: HMSPrebuiltOptions? = null,
+        logoUrl : String? = null,
+        isLiveIconEnabled : Boolean? = null,
+        isRecordingIconsEnabled : Boolean? = null,
+        isPreviewScreenEnabled : Boolean? = null,
+        liveClassName: String? = null,
+        activityResultLauncher: ActivityResultLauncher<Intent>,
+    ) {
+        Intent(activity, MeetingActivity::class.java).apply {
+            putExtra(TOKEN, token)
+            putExtra(ROOM_PREBUILT, options)
+            putExtra(LOGO_URL,logoUrl)
+            putExtra(LIVE_ICON_STATUS, isLiveIconEnabled)
+            putExtra(RECORDING_ICONS_STATUS, isRecordingIconsEnabled)
+            putExtra(PREVIEW_SCREEN_STATUS, isPreviewScreenEnabled)
+            putExtra(LIVE_CLASS_NAME, liveClassName)
+            activityResultLauncher.launch(this)
         }
     }
 
