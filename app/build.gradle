@@ -8,6 +8,7 @@ plugins {
 }
 android {
     compileSdk 34
+    namespace = "live.hms.app2"
 
     defaultConfig {
         applicationId "live.hms.app2"
