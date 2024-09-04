@@ -3,8 +3,8 @@ plugins {
     id 'kotlin-android'
     id 'androidx.navigation.safeargs.kotlin'
     id 'kotlin-parcelize'
-    id 'com.google.gms.google-services' // Google Services Gradle plugin
-    id 'com.google.firebase.crashlytics'
+   // id 'com.google.gms.google-services' // Google Services Gradle plugin
+   // id 'com.google.firebase.crashlytics'
 }
 android {
     compileSdk 34
@@ -34,21 +34,22 @@ android {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
-            firebaseCrashlytics {
-                mappingFileUploadEnabled true
-            }
+//            firebaseCrashlytics {
+//                mappingFileUploadEnabled true
+//            }
         }
     }
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
     compileOptions {
-        sourceCompatibility = "11"
-        targetCompatibility = "11"
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 }
 
