@@ -3,8 +3,8 @@ plugins {
     id 'kotlin-android'
     id 'androidx.navigation.safeargs.kotlin'
     id 'kotlin-parcelize'
-    id 'com.google.gms.google-services' // Google Services Gradle plugin
-    id 'com.google.firebase.crashlytics'
+ //   id 'com.google.gms.google-services' // Google Services Gradle plugin
+ //   id 'com.google.firebase.crashlytics'
 }
 android {
     compileSdk 34
@@ -33,9 +33,9 @@ android {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
-            firebaseCrashlytics {
-                mappingFileUploadEnabled true
-            }
+//            firebaseCrashlytics {
+//                mappingFileUploadEnabled true
+//            }
         }
     }
 
@@ -47,7 +47,7 @@ android {
         targetCompatibility = "1.8"
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 }
 
@@ -59,8 +59,9 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
     //100ms.live prebuilt lib
-    implementation "live.100ms:room-kit:$HMS_ROOM_KIT_VERSION"
+   // implementation "live.100ms:room-kit:$HMS_ROOM_KIT_VERSION"
 
+    implementation project(":room-kit")
     implementation "live.100ms:virtual-background:$HMS_SDK_VERSION"
     //100ms noise cancellation dep
     implementation "live.100ms:hms-noise-cancellation-android:$HMS_SDK_VERSION"
