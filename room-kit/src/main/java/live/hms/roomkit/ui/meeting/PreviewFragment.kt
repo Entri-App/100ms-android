@@ -700,7 +700,7 @@ class PreviewFragment : Fragment() {
                 enableDisableJoinNowButton()
 
                     updateUiBasedOnPublishParams(room.localPeer?.hmsRole?.publishParams)
-                track = MeetingTrack(room.localPeer!!, null, null)
+                track = room.localPeer?.let { MeetingTrack(it, null, null) }
                 localTracks.forEach {
                     when (it) {
                         is HMSLocalAudioTrack -> {
