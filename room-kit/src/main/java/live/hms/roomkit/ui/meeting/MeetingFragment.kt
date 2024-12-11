@@ -1203,7 +1203,11 @@ class MeetingFragment : Fragment() {
 
             setOnSingleClickListener(200L) {
                 Log.v(TAG, "buttonToggleVideo.onClick()")
-                meetingViewModel.toggleLocalVideo()
+                if(meetingViewModel.isLocalVideoEnabled() == true){
+                    meetingViewModel.toggleLocalVideo()
+                } else {
+                    showAlert()
+                }
             }
         }
 
@@ -1423,6 +1427,22 @@ class MeetingFragment : Fragment() {
         }
          ***/
 
+    }
+
+    private fun showAlert() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("Confirmation")
+            .setMessage("Are you sure you want to proceed?")
+            .setPositiveButton("Yes") { dialog, _ ->
+                meetingViewModel.toggleLocalVideo()
+                dialog.dismiss()
+            }
+            .setNegativeButton("No") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setCancelable(true)
+        val alertDialog = builder.create()
+        alertDialog.show()
     }
 
     private fun isOverlayChatVisible() : Boolean {
