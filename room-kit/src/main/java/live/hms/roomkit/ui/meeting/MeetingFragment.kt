@@ -484,8 +484,8 @@ class MeetingFragment : Fragment() {
                 } else {
                     binding.liveTitle.text = "Live"
                 }
-                binding.tvViewersCountCard.visibility = View.VISIBLE
-                binding.tvViewersCount.visibility = View.VISIBLE
+                binding.tvViewersCountCard.visibility = View.GONE
+                binding.tvViewersCount.visibility = View.GONE
                 setupStreamingTimeView()
             }
 
