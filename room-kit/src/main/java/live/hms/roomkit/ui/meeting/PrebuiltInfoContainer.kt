@@ -126,7 +126,10 @@ class PrebuiltInfoContainer(private val hmssdk: HMSSDK) {
     }
 
     fun shouldSkipPreview(): Boolean {
-        return hmsRoomLayout?.data?.get(0)?.screens?.preview?.skipPreview == true
+        if(hmsRoomLayout?.data?.isNotEmpty() == true) {
+            return hmsRoomLayout?.data?.get(0)?.screens?.preview?.skipPreview == true
+        }
+        return false
     }
 
     fun getLiveStreamingHeaderTitle() : String? {
