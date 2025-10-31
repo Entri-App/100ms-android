@@ -32,3 +32,17 @@
 # Previously required proguard rules for sdk, now included in the library.
 #-keep class hms.webrtc.** { *; }
 #-keep class live.hms.video.** { *; }
+
+# Keep MediaPipe classes (required by virtual-background and noise-cancellation)
+-keep class com.google.mediapipe.** { *; }
+-dontwarn com.google.mediapipe.**
+
+# Keep Protocol Buffers classes (required by MediaPipe)
+-keep class com.google.protobuf.** { *; }
+-dontwarn com.google.protobuf.**
+
+# Keep MediaPipe framework classes
+-keep class com.google.mediapipe.framework.** { *; }
+-keep class com.google.mediapipe.components.** { *; }
+-keep class com.google.mediapipe.formats.** { *; }
+-keep class com.google.mediapipe.proto.** { *; }
