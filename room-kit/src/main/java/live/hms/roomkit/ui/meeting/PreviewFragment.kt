@@ -674,6 +674,7 @@ class PreviewFragment : Fragment() {
                 HMSPeerUpdate.NETWORK_QUALITY_UPDATED -> {
                     peer.networkQuality?.downlinkQuality?.let {
                         binding.networkQuality.visibility = View.VISIBLE
+                        Log.e("100ms::", "initObservers:nwq------>${peer.networkQuality?.downlinkQuality} ", )
                         updateNetworkQualityView(it, requireContext(), binding.networkQuality)
                     }
                 }
