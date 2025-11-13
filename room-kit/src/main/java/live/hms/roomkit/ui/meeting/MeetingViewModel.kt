@@ -29,6 +29,7 @@ import live.hms.roomkit.ui.meeting.activespeaker.ActiveSpeakerHandler
 import live.hms.roomkit.ui.meeting.bottomsheets.StreamState
 import live.hms.roomkit.ui.meeting.chat.ChatMessage
 import live.hms.roomkit.ui.meeting.chat.Recipient
+import live.hms.roomkit.ui.meeting.analytics.LiveSessionAnalyticsUseCase
 import live.hms.roomkit.ui.meeting.participants.ParticipantPreviousRoleChangeUseCase
 import live.hms.roomkit.ui.notification.HMSNotification
 import live.hms.roomkit.ui.notification.HMSNotificationType
@@ -107,6 +108,9 @@ class MeetingViewModel(
     val initPrebuiltChatMessageRecipient = MutableLiveData<Pair<Recipient?,Int>>()
     val audioDeviceChange = MutableLiveData<HMSAudioManager.AudioDevice>()
     val participantPreviousRoleChangeUseCase by lazy { ParticipantPreviousRoleChangeUseCase(hmsSDK::changeMetadata)}
+
+    private val liveSessionAnalyticsUseCase by lazy { LiveSessionAnalyticsUseCase(Gson()) }
+
     private var hasValidToken = false
     private var pendingRoleChange: HMSRoleChangeRequest? = null
     private var hmsRoomLayout : HMSRoomLayout? = null
@@ -155,6 +159,7 @@ class MeetingViewModel(
     var liveClassName : String? = null
     var isLiveIconEnabled : Boolean? = null
     var isRecordingIconsEnabled : Boolean? = null
+    var liveClassEssential:String? = null
 
     fun isLargeRoom() = hmsRoom?.isLargeRoom?:false
 
@@ -345,6 +350,7 @@ class MeetingViewModel(
                     hasValidToken = false
                     onHMSActionResultListener?.onError(error)
                     roomLayoutLiveData.postValue(false)
+                    liveSessionAnalyticsUseCase.onError(error.message)
                 }
 
                 override fun onTokenSuccess(token: String) {
@@ -440,6 +446,7 @@ class MeetingViewModel(
                     Log.e(TAG, "onError: ", error)
                     onHMSActionResultListener?.onError(error)
                     roomLayoutLiveData.postValue(false)
+                    liveSessionAnalyticsUseCase.onError(error.message)
                 }
 
                 override fun onLayoutSuccess(layoutConfig: HMSRoomLayout) {
@@ -749,6 +756,7 @@ class MeetingViewModel(
         hmsSDK.preview(hmsConfig!!, object : HMSPreviewListener {
             override fun onError(error: HMSException) {
                 previewErrorData.postValue(error)
+                liveSessionAnalyticsUseCase.onError(error.message)
             }
 
             override fun onPermissionsRequested(permissions : List<String>) {
@@ -960,6 +968,7 @@ class MeetingViewModel(
         )
 
         val joinStartedAt = System.currentTimeMillis()
+        liveSessionAnalyticsUseCase.onJoinStarted(joinStartedAt)
         Log.v(TAG, "~~ hmsSDK.join called ~~")
         hmsSDK.join(hmsConfig!!, object : HMSUpdateListener {
 
@@ -998,6 +1007,7 @@ class MeetingViewModel(
                 val joinSuccessAt = System.currentTimeMillis();
                 val timeTakenToJoin = joinSuccessAt - joinStartedAt
                 Log.d(TAG, "~~ HMS SDK took $timeTakenToJoin ms to join ~~")
+                liveSessionAnalyticsUseCase.onJoined(timeTakenToJoin)
                 failures.clear()
                 state.postValue(MeetingState.Ongoing())
                 hmsRoom = room // Just storing the room id for the beam bot.
@@ -1160,6 +1170,10 @@ class MeetingViewModel(
                     HMSPeerUpdate.NETWORK_QUALITY_UPDATED -> {
                         _peerMetadataNameUpdate.postValue(Pair(hmsPeer, type))
                         participantPeerUpdate.postValue(Unit)
+                        if (hmsPeer.isLocal) {
+                            val q = hmsPeer.networkQuality?.downlinkQuality ?: -1
+                            liveSessionAnalyticsUseCase.onNetworkQualityUpdate(q)
+                        }
                     }
                     else -> Unit
                 }
@@ -1312,6 +1326,7 @@ class MeetingViewModel(
 
             override fun onReconnecting(error: HMSException) {
                 HMSLogger.d(TAG, "~~ onReconnecting :: $error ~~")
+                liveSessionAnalyticsUseCase.onReconnecting()
                 state.postValue(MeetingState.Reconnecting("Reconnecting", error.toString()))
             }
 
@@ -1627,6 +1642,10 @@ class MeetingViewModel(
         joined.postValue(false)
     }
 
+    fun finalizeLiveSessionAndGetJson(exitReason: String): String {
+        return liveSessionAnalyticsUseCase.finishSession(exitReason)
+    }
+
     private fun addAudioTrack(track: HMSAudioTrack, peer: HMSPeer) {
         synchronized(_tracks) {
             if (isAudioMuted && track is HMSRemoteAudioTrack) {
@@ -1879,6 +1898,7 @@ class MeetingViewModel(
                 object : HMSActionResultListener {
                     override fun onError(error: HMSException) {
                         Log.d(TAG, "remote mute Error $error")
+                        liveSessionAnalyticsUseCase.onError(error.message)
                     }
 
                     override fun onSuccess() {
@@ -1964,6 +1984,7 @@ class MeetingViewModel(
                             type = HMSNotificationType.RecordingFailedToStart
                         )
                     )
+                    liveSessionAnalyticsUseCase.onError(error.message)
                 }
 
                 override fun onSuccess() {
@@ -2105,6 +2126,7 @@ class MeetingViewModel(
         hmsSDK.raiseLocalPeerHand(object : HMSActionResultListener{
             override fun onError(error: HMSException) {
                 Log.e(TAG, "Error while raising hand $error")
+                liveSessionAnalyticsUseCase.onError(error.message)
             }
 
             override fun onSuccess() {
@@ -2626,6 +2648,7 @@ class MeetingViewModel(
                 actionButtonText = actionButtonText
             )
         )
+        liveSessionAnalyticsUseCase.onError(message)
     }
 
     fun triggerScreenShareBottomSheet(video: HMSVideoTrack?) {
@@ -2770,6 +2793,7 @@ class MeetingViewModel(
                             icon = R.drawable.transcription_error_triangle
                         )
                     )
+                    liveSessionAnalyticsUseCase.onError(error.message)
                 }
                 override fun onSuccess() {
 

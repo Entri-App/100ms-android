@@ -6,6 +6,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.ContextCompat.startActivity
 import live.hms.roomkit.ui.diagnostic.DiagnosticActivity
 import live.hms.roomkit.ui.meeting.MeetingActivity
+import live.hms.roomkit.util.LIVE_CLASS_ESSENTIAL
 import live.hms.roomkit.util.LIVE_CLASS_NAME
 import live.hms.roomkit.util.LIVE_ICON_STATUS
 import live.hms.roomkit.util.LOGO_URL
@@ -73,6 +74,7 @@ object HMSRoomKit {
         isRecordingIconsEnabled : Boolean? = null,
         isPreviewScreenEnabled : Boolean? = null,
         liveClassName: String? = null,
+        liveClassEssential: String? = null,
         activityResultLauncher: ActivityResultLauncher<Intent>,
     ) {
         Intent(activity, MeetingActivity::class.java).apply {
@@ -83,6 +85,7 @@ object HMSRoomKit {
             putExtra(RECORDING_ICONS_STATUS, isRecordingIconsEnabled)
             putExtra(PREVIEW_SCREEN_STATUS, isPreviewScreenEnabled)
             putExtra(LIVE_CLASS_NAME, liveClassName)
+            putExtra(LIVE_CLASS_ESSENTIAL, liveClassEssential)
             activityResultLauncher.launch(this)
         }
     }
