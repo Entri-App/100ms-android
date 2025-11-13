@@ -35,6 +35,7 @@ import live.hms.roomkit.ui.notification.HMSNotificationDiffCallBack
 import live.hms.roomkit.ui.notification.HMSNotificationType
 import live.hms.roomkit.ui.polls.display.PollDisplayFragment
 import live.hms.roomkit.ui.settings.SettingsStore
+import live.hms.roomkit.util.LIVE_CLASS_ESSENTIAL
 import live.hms.roomkit.util.LIVE_CLASS_NAME
 import live.hms.roomkit.util.LIVE_ICON_STATUS
 import live.hms.roomkit.util.LOGO_URL
@@ -140,6 +141,7 @@ class MeetingActivity : AppCompatActivity() {
         meetingViewModel.isRecordingIconsEnabled = intent?.getBooleanExtra(RECORDING_ICONS_STATUS , true)
         meetingViewModel.roomLogoUrl = intent?.getStringExtra(LOGO_URL)
         meetingViewModel.liveClassName = intent?.getStringExtra(LIVE_CLASS_NAME)
+        meetingViewModel.liveClassEssential = intent?.getStringExtra(LIVE_CLASS_ESSENTIAL)
 
         if (roomCode.isEmpty() && token.isEmpty()) {
             Toast.makeText(this, "Room code or token is required", Toast.LENGTH_SHORT).show()
