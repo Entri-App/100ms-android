@@ -427,6 +427,16 @@ class MeetingFragment : Fragment() {
         }
         val resultIntent = Intent()
         resultIntent.putExtra("is_meeting_leaved", true)
+        val exitReason = when {
+            details?.roomWasEnded == true -> "room_ended"
+            details != null -> "removed"
+            else -> "manual"
+        }
+        kotlin.runCatching {
+            val json = meetingViewModel.finalizeLiveSessionAndGetJson(exitReason)
+            Log.e("100ms::", "goToHomePage:---->$json ", )
+            resultIntent.putExtra("LIVE_SESSION_DATA", json)
+        }
         requireActivity().setResult(RESULT_OK, resultIntent)
         requireActivity().finish()
     }
