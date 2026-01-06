@@ -54,31 +54,36 @@ class LiveSessionAnalyticsUseCase(
     }
 
     fun onNetworkQualityUpdate(quality: Int) {
-        if (quality < 0) return  // Skip invalid quality values
-        
-        val currentTime = System.currentTimeMillis()
-        
-        // Set initial network quality and minimum (first value received)
+        if (quality < 0) return
+
+        val timestamp = System.currentTimeMillis()
+        val formattedTime = convertDateToTimelineFormat(timestamp) ?: timestamp.toString()
+
+        // First valid update (initialization)
         if (!isTrackingStarted) {
-            metrics.initialNetworkQuality = quality
-            metrics.minimumNetworkQuality = quality  // Initialize minimum with first value
             isTrackingStarted = true
-            lastRecordedQuality = quality  // Initialize last recorded value
+
+            metrics.apply {
+                initialNetworkQuality = quality
+                minimumNetworkQuality = quality
+                networkTimeline.add("$formattedTime:$quality")
+            }
+
+            currentNetworkQuality = quality
+            lastRecordedQuality = quality
+            return
         }
-        
-        // Update current quality
+
         currentNetworkQuality = quality
-        
-        // Update minimum network quality (lowest value seen)
-        if (quality < metrics.minimumNetworkQuality) {
-            metrics.minimumNetworkQuality = quality
-        }
-        
-        // Only record to timeline if value is different from last recorded value
+
+        // Update minimum network quality
+        metrics.minimumNetworkQuality =
+            minOf(metrics.minimumNetworkQuality ?: quality, quality)
+
+        // Record only if quality changed
         if (quality != lastRecordedQuality) {
-            val formattedCurrentTime = convertDateToTimelineFormat(currentTime) ?: "$currentTime"
-            metrics.networkTimeline.add("$formattedCurrentTime:$quality")
-            lastRecordedQuality = quality  // Update last recorded value
+            metrics.networkTimeline.add("$formattedTime:$quality")
+            lastRecordedQuality = quality
         }
     }
 
@@ -96,18 +101,17 @@ class LiveSessionAnalyticsUseCase(
         metrics.exitReason = exitReason
         metrics.endTime = convertDateToAnalytics(System.currentTimeMillis()) ?: "${System.currentTimeMillis()}"
         
-        // Calculate average network quality from timeline
+        // Calculate average network quality from timeline (only if we have data)
         val allQualities = metrics.networkTimeline.mapNotNull { entry ->
             entry.substringAfterLast(":").toIntOrNull()
         }.filter { it >= 0 }
         if (allQualities.isNotEmpty()) {
-            metrics.avgNetworkQuality = allQualities.map { it.toDouble() }.average()
-        } else {
-            // If no quality data, use defaults
-            metrics.avgNetworkQuality = currentNetworkQuality.toDouble().takeIf { it >= 0 } ?: 0.0
+            val avg = allQualities.map { it.toDouble() }.average()
+            metrics.avgNetworkQuality = (avg * 10).toLong() / 10.0  // Round to 1 decimal place
         }
-        
-        return gson.toJson(metrics)
+        // If no quality data, avgNetworkQuality remains null (don't send 0)
+        val json = gson.toJson(metrics)
+        return json
     }
 
     private fun convertDateToAnalytics(timeInMillis: Long?): String? {
