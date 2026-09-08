@@ -134,9 +134,15 @@ class SettingsBottomSheet(
             }
         }
         binding.btnPipMode.apply {
+            visibility =
+                if ((activity as? MeetingActivity)?.isPictureInPictureSupported() == true) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
             setOnSingleClickListener {
                 dismiss()
-                requireActivity().enterPictureInPictureMode()
+                (activity as? MeetingActivity)?.enterPictureInPictureIfPossible()
             }
         }
 

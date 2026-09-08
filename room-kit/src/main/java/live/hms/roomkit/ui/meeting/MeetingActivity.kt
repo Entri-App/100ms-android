@@ -1,6 +1,8 @@
 package live.hms.roomkit.ui.meeting
 
 import android.Manifest.permission.POST_NOTIFICATIONS
+import android.app.PictureInPictureParams
+import android.app.RemoteAction
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.ContextCompat
@@ -11,6 +13,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -68,8 +71,9 @@ class MeetingActivity : AppCompatActivity() {
         )
     }
 
-    // Track if user is in an active meeting (non-HLS) for foreground service
+    // Track whether the user has joined a meeting.
     private var isInActiveMeeting = false
+    private var pictureInPictureActions: List<RemoteAction> = emptyList()
 
     // Notification config from HMSPrebuiltOptions for foreground service
     private var callNotificationConfig: CallNotificationConfig? = null
@@ -110,6 +114,7 @@ class MeetingActivity : AppCompatActivity() {
         val joined = meetingViewModel.joined.value == true
         val wasInActiveMeeting = isInActiveMeeting
         isInActiveMeeting = joined
+        updatePictureInPictureParams()
 
         // Start service when user joins meeting (while app is still in foreground)
         if (isInActiveMeeting && !wasInActiveMeeting) {
@@ -133,6 +138,59 @@ class MeetingActivity : AppCompatActivity() {
         if (!isInActiveMeeting && wasInActiveMeeting) {
             CallForegroundService.stop(this)
         }
+    }
+
+    internal fun isPictureInPictureSupported(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
+        return PictureInPicturePolicy.isSupported(
+            sdkInt = Build.VERSION.SDK_INT,
+            hasSystemFeature = packageManager.hasSystemFeature(
+                PackageManager.FEATURE_PICTURE_IN_PICTURE
+            )
+        )
+    }
+
+    internal fun enterPictureInPictureIfPossible(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
+        val isAlreadyInPictureInPicture =
+            isInPictureInPictureMode
+        if (
+            !PictureInPicturePolicy.shouldEnter(
+                isSupported = isPictureInPictureSupported(),
+                isInActiveMeeting = isInActiveMeeting,
+                isAlreadyInPictureInPicture = isAlreadyInPictureInPicture
+            )
+        ) {
+            return false
+        }
+
+        return try {
+            enterPictureInPictureMode(buildPictureInPictureParams())
+        } catch (exception: IllegalStateException) {
+            Log.w("MeetingActivity", "Unable to enter picture-in-picture mode", exception)
+            false
+        }
+    }
+
+    internal fun updatePictureInPictureActions(actions: List<RemoteAction>) {
+        pictureInPictureActions = actions
+        updatePictureInPictureParams()
+    }
+
+    private fun updatePictureInPictureParams() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        if (!isPictureInPictureSupported()) return
+        setPictureInPictureParams(buildPictureInPictureParams())
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun buildPictureInPictureParams(): PictureInPictureParams {
+        val builder = PictureInPictureParams.Builder()
+            .setActions(pictureInPictureActions)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setAutoEnterEnabled(isInActiveMeeting)
+        }
+        return builder.build()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -214,6 +272,13 @@ class MeetingActivity : AppCompatActivity() {
         // Don't update if activity is finishing (user leaving)
         if (isInActiveMeeting && !isFinishing) {
             CallForegroundService.updateNotification(this, showDescription = true)
+        }
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (Build.VERSION.SDK_INT in Build.VERSION_CODES.O until Build.VERSION_CODES.S) {
+            enterPictureInPictureIfPossible()
         }
     }
 
