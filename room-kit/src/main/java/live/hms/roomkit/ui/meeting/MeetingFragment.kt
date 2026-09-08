@@ -3,7 +3,6 @@ package live.hms.roomkit.ui.meeting
 import android.animation.Animator
 import android.animation.Animator.AnimatorListener
 import android.app.Activity
-import android.app.PictureInPictureParams
 import android.app.RemoteAction
 import android.content.Context
 import android.content.Intent
@@ -24,7 +23,6 @@ import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity.RESULT_OK
 import androidx.compose.foundation.background
@@ -1530,23 +1528,11 @@ class MeetingFragment : Fragment() {
         meetingViewModel.stopScreenshare()
     }
 
-    //entry point to start PIP mode
-    @RequiresApi(Build.VERSION_CODES.N)
-    private fun launchPipMode() {
-
-        activity?.enterPictureInPictureMode()
-    }
-
     val pipActionsMap = mutableMapOf<String, RemoteAction>()
 
     private fun updatePipActions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            activity?.setPictureInPictureParams(
-                PictureInPictureParams.Builder()
-                    .setActions(pipActionsMap.map { it.value }.toList())
-                    .build()
-            )
-        }
+        (activity as? MeetingActivity)
+            ?.updatePictureInPictureActions(pipActionsMap.values.toList())
     }
 
 
