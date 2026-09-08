@@ -1553,7 +1553,10 @@ class MeetingFragment : Fragment() {
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     Log.v(TAG, "initOnBackPress -> handleOnBackPressed")
-                    if ((activity as? MeetingActivity)?.enterPictureInPictureIfPossible() != true) {
+                    if (
+                        (activity as? MeetingActivity)
+                            ?.enterPictureInPictureAndBackgroundTask() != true
+                    ) {
                         inflateExitFlow()
                     }
                 }
