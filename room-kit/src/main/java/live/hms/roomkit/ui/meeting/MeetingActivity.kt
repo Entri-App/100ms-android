@@ -4,6 +4,7 @@ import android.Manifest.permission.POST_NOTIFICATIONS
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Build
 import androidx.core.content.ContextCompat
 import android.os.Bundle
@@ -74,6 +75,7 @@ class MeetingActivity : AppCompatActivity() {
     // Track whether the user has joined a meeting.
     private var isInActiveMeeting = false
     private var pictureInPictureActions: List<RemoteAction> = emptyList()
+    private var backgroundTaskAfterEnteringPictureInPicture = false
 
     // Notification config from HMSPrebuiltOptions for foreground service
     private var callNotificationConfig: CallNotificationConfig? = null
@@ -169,6 +171,15 @@ class MeetingActivity : AppCompatActivity() {
         } catch (exception: IllegalStateException) {
             Log.w("MeetingActivity", "Unable to enter picture-in-picture mode", exception)
             false
+        }
+    }
+
+    internal fun enterPictureInPictureAndBackgroundTask(): Boolean {
+        backgroundTaskAfterEnteringPictureInPicture = true
+        return enterPictureInPictureIfPossible().also { enteredPictureInPicture ->
+            if (!enteredPictureInPicture) {
+                backgroundTaskAfterEnteringPictureInPicture = false
+            }
         }
     }
 
@@ -279,6 +290,19 @@ class MeetingActivity : AppCompatActivity() {
         super.onUserLeaveHint()
         if (Build.VERSION.SDK_INT in Build.VERSION_CODES.O until Build.VERSION_CODES.S) {
             enterPictureInPictureIfPossible()
+        }
+    }
+
+    override fun onPictureInPictureModeChanged(
+        isInPictureInPictureMode: Boolean,
+        newConfig: Configuration
+    ) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        if (isInPictureInPictureMode && backgroundTaskAfterEnteringPictureInPicture) {
+            backgroundTaskAfterEnteringPictureInPicture = false
+            if (!moveTaskToBack(true)) {
+                Log.w("MeetingActivity", "Unable to move the host app task to the background")
+            }
         }
     }
 
