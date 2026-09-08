@@ -3,6 +3,7 @@ package live.hms.roomkit.ui.meeting
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
@@ -75,7 +76,7 @@ class MeetingActivity : AppCompatActivity() {
     // Track whether the user has joined a meeting.
     private var isInActiveMeeting = false
     private var pictureInPictureActions: List<RemoteAction> = emptyList()
-    private var backgroundTaskAfterEnteringPictureInPicture = false
+    private var showHomeAfterEnteringPictureInPicture = false
 
     // Notification config from HMSPrebuiltOptions for foreground service
     private var callNotificationConfig: CallNotificationConfig? = null
@@ -173,10 +174,10 @@ class MeetingActivity : AppCompatActivity() {
     }
 
     internal fun enterPictureInPictureFromManualAction(): Boolean {
-        backgroundTaskAfterEnteringPictureInPicture = true
+        showHomeAfterEnteringPictureInPicture = true
         return enterPictureInPictureIfPossible().also { enteredPictureInPicture ->
             if (!enteredPictureInPicture) {
-                backgroundTaskAfterEnteringPictureInPicture = false
+                showHomeAfterEnteringPictureInPicture = false
             }
         }
     }
@@ -296,11 +297,14 @@ class MeetingActivity : AppCompatActivity() {
         newConfig: Configuration
     ) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-        if (isInPictureInPictureMode && backgroundTaskAfterEnteringPictureInPicture) {
-            backgroundTaskAfterEnteringPictureInPicture = false
-            if (!moveTaskToBack(true)) {
-                Log.w("MeetingActivity", "Unable to move the host app task to the background")
-            }
+        if (isInPictureInPictureMode && showHomeAfterEnteringPictureInPicture) {
+            showHomeAfterEnteringPictureInPicture = false
+            startActivity(
+                Intent(Intent.ACTION_MAIN).apply {
+                    addCategory(Intent.CATEGORY_HOME)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+            )
         }
     }
 
