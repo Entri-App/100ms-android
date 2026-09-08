@@ -142,7 +142,7 @@ class SettingsBottomSheet(
                 }
             setOnSingleClickListener {
                 dismiss()
-                (activity as? MeetingActivity)?.enterPictureInPictureIfPossible()
+                (activity as? MeetingActivity)?.enterPictureInPictureFromManualAction()
             }
         }
 

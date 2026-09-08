@@ -154,7 +154,7 @@ class SessionOptionBottomSheet(
             R.drawable.icon_pip,
             {
                 dismissAllowingStateLoss()
-                (activity as? MeetingActivity)?.enterPictureInPictureIfPossible()
+                (activity as? MeetingActivity)?.enterPictureInPictureFromManualAction()
             },
             isSelected = false
         )
