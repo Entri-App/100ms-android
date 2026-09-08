@@ -287,6 +287,9 @@ class MeetingActivity : AppCompatActivity() {
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isInPictureInPictureMode) {
+            showHomeAfterEnteringPictureInPicture = isInActiveMeeting
+        }
         if (Build.VERSION.SDK_INT in Build.VERSION_CODES.O until Build.VERSION_CODES.S) {
             enterPictureInPictureIfPossible()
         }
