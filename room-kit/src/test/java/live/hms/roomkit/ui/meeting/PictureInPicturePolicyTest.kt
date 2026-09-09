@@ -53,4 +53,40 @@ class PictureInPicturePolicyTest {
             )
         )
     }
+
+    @Test
+    fun `resuming a host activity while an active meeting is in PiP restores the meeting task`() {
+        assertTrue(
+            PictureInPicturePolicy.shouldRestoreMeetingTask(
+                isMeetingActivity = false,
+                isInActiveMeeting = true,
+                isInPictureInPicture = true
+            )
+        )
+    }
+
+    @Test
+    fun `meeting task is not restored outside active PiP or for the meeting activity itself`() {
+        assertFalse(
+            PictureInPicturePolicy.shouldRestoreMeetingTask(
+                isMeetingActivity = false,
+                isInActiveMeeting = false,
+                isInPictureInPicture = true
+            )
+        )
+        assertFalse(
+            PictureInPicturePolicy.shouldRestoreMeetingTask(
+                isMeetingActivity = false,
+                isInActiveMeeting = true,
+                isInPictureInPicture = false
+            )
+        )
+        assertFalse(
+            PictureInPicturePolicy.shouldRestoreMeetingTask(
+                isMeetingActivity = true,
+                isInActiveMeeting = true,
+                isInPictureInPicture = true
+            )
+        )
+    }
 }

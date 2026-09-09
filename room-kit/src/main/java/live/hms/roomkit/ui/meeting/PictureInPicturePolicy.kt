@@ -12,4 +12,10 @@ internal object PictureInPicturePolicy {
         isInActiveMeeting: Boolean,
         isAlreadyInPictureInPicture: Boolean
     ): Boolean = isSupported && isInActiveMeeting && !isAlreadyInPictureInPicture
+
+    fun shouldRestoreMeetingTask(
+        isMeetingActivity: Boolean,
+        isInActiveMeeting: Boolean,
+        isInPictureInPicture: Boolean
+    ): Boolean = !isMeetingActivity && isInActiveMeeting && isInPictureInPicture
 }

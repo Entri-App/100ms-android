@@ -1,12 +1,16 @@
 package live.hms.roomkit.ui.meeting
 
 import android.Manifest.permission.POST_NOTIFICATIONS
+import android.app.Activity
+import android.app.ActivityManager
+import android.app.Application
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
+import android.os.Handler
 import androidx.core.content.ContextCompat
 import android.os.Bundle
 import android.util.Log
@@ -77,6 +81,31 @@ class MeetingActivity : AppCompatActivity() {
     private var isInActiveMeeting = false
     private var pictureInPictureActions: List<RemoteAction> = emptyList()
     private var showHomeAfterEnteringPictureInPicture = false
+    private var isHostActivityGuardRegistered = false
+    private val hostActivityGuard = object : Application.ActivityLifecycleCallbacks {
+        override fun onActivityResumed(activity: Activity) {
+            Log.d(
+                "MeetingActivity",
+                "Host activity resumed: ${activity.javaClass.name}, active=$isInActiveMeeting, pip=$isInPictureInPictureMode"
+            )
+            if (
+                PictureInPicturePolicy.shouldRestoreMeetingTask(
+                    isMeetingActivity = activity === this@MeetingActivity,
+                    isInActiveMeeting = isInActiveMeeting,
+                    isInPictureInPicture = isInPictureInPictureMode
+                )
+            ) {
+                _binding?.root?.post(::restoreMeetingTask)
+            }
+        }
+
+        override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+        override fun onActivityStarted(activity: Activity) = Unit
+        override fun onActivityPaused(activity: Activity) = Unit
+        override fun onActivityStopped(activity: Activity) = Unit
+        override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+        override fun onActivityDestroyed(activity: Activity) = Unit
+    }
 
     // Notification config from HMSPrebuiltOptions for foreground service
     private var callNotificationConfig: CallNotificationConfig? = null
@@ -308,13 +337,52 @@ class MeetingActivity : AppCompatActivity() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
             )
+            Handler(mainLooper).post {
+                if (this.isInPictureInPictureMode) {
+                    setHostActivityGuardEnabled(true)
+                }
+            }
+        } else {
+            setHostActivityGuardEnabled(isInPictureInPictureMode)
         }
     }
 
     override fun onDestroy() {
+        setHostActivityGuardEnabled(false)
         super.onDestroy()
         CallForegroundService.stop(this)
         _binding = null
+    }
+
+    private fun setHostActivityGuardEnabled(enabled: Boolean) {
+        if (enabled && !isHostActivityGuardRegistered) {
+            application.registerActivityLifecycleCallbacks(hostActivityGuard)
+            isHostActivityGuardRegistered = true
+            Log.d("MeetingActivity", "Registered PiP host activity guard")
+        } else if (!enabled && isHostActivityGuardRegistered) {
+            application.unregisterActivityLifecycleCallbacks(hostActivityGuard)
+            isHostActivityGuardRegistered = false
+            Log.d("MeetingActivity", "Unregistered PiP host activity guard")
+        }
+    }
+
+    private fun restoreMeetingTask() {
+        val activityManager = getSystemService(ActivityManager::class.java)
+        val tasks = activityManager.appTasks
+        Log.d(
+            "MeetingActivity",
+            "Restoring meeting task id=$taskId from owned tasks=${tasks.map { it.taskInfo.id }}"
+        )
+        tasks.firstOrNull { appTask -> appTask.taskInfo.id == taskId }
+            ?.let { meetingTask ->
+                try {
+                    meetingTask.moveToFront()
+                    Log.d("MeetingActivity", "Requested meeting task restore")
+                } catch (exception: SecurityException) {
+                    Log.e("MeetingActivity", "Unable to restore meeting task", exception)
+                }
+            }
+            ?: Log.w("MeetingActivity", "Meeting task was not returned by ActivityManager")
     }
 
     private fun initObservers() {
