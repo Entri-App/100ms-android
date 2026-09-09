@@ -95,7 +95,7 @@ class MeetingActivity : AppCompatActivity() {
                     isInPictureInPicture = isInPictureInPictureMode
                 )
             ) {
-                _binding?.root?.post(::restoreMeetingTask)
+                Handler(mainLooper).post(::restoreMeetingTask)
             }
         }
 
