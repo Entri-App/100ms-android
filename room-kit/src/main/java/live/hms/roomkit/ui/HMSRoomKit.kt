@@ -18,6 +18,29 @@ import live.hms.roomkit.util.TOKEN
 
 object HMSRoomKit {
 
+    /** True while [MeetingActivity] is connected to an active meeting. */
+    @get:JvmStatic
+    @Volatile
+    var isMeetingActive: Boolean = false
+        private set
+
+    /** True while the active [MeetingActivity] is displayed in picture-in-picture mode. */
+    @get:JvmStatic
+    @Volatile
+    var isMeetingInPictureInPictureMode: Boolean = false
+        private set
+
+    internal fun updateMeetingState(isActive: Boolean) {
+        isMeetingActive = isActive
+        if (!isActive) {
+            isMeetingInPictureInPictureMode = false
+        }
+    }
+
+    internal fun updatePictureInPictureState(isInPictureInPictureMode: Boolean) {
+        isMeetingInPictureInPictureMode = isInPictureInPictureMode
+    }
+
 
     fun launchPrebuilt(
         roomCode: String,
@@ -97,4 +120,3 @@ object HMSRoomKit {
     }
 
 }
-

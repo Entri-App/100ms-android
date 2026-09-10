@@ -1,6 +1,7 @@
 package live.hms.roomkit.ui.meeting
 
 import android.Manifest.permission.POST_NOTIFICATIONS
+import android.content.res.Configuration
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.ContextCompat
@@ -24,6 +25,7 @@ import live.hms.roomkit.R
 import live.hms.roomkit.animation.RootViewDeferringInsetsCallback
 import live.hms.roomkit.databinding.ActivityMeetingBinding
 import live.hms.roomkit.ui.HMSPrebuiltOptions
+import live.hms.roomkit.ui.HMSRoomKit
 import live.hms.roomkit.ui.meeting.participants.ParticipantsFragment
 import live.hms.roomkit.ui.notification.CardStackLayoutManager
 import live.hms.roomkit.ui.notification.CardStackListener
@@ -110,6 +112,7 @@ class MeetingActivity : AppCompatActivity() {
         val joined = meetingViewModel.joined.value == true
         val wasInActiveMeeting = isInActiveMeeting
         isInActiveMeeting = joined
+        HMSRoomKit.updateMeetingState(joined)
 
         // Start service when user joins meeting (while app is still in foreground)
         if (isInActiveMeeting && !wasInActiveMeeting) {
@@ -132,6 +135,28 @@ class MeetingActivity : AppCompatActivity() {
         // Stop service when user leaves the meeting
         if (!isInActiveMeeting && wasInActiveMeeting) {
             CallForegroundService.stop(this)
+        }
+    }
+
+    internal fun isPictureInPictureSupported(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+
+    internal fun enterPictureInPictureFromManualAction(): Boolean {
+        if (
+            !isPictureInPictureSupported() ||
+            !isInActiveMeeting ||
+            isInPictureInPictureMode
+        ) {
+            return false
+        }
+
+        return try {
+            enterPictureInPictureMode()
+            true
+        } catch (exception: IllegalStateException) {
+            Log.w("MeetingActivity", "Unable to enter picture-in-picture mode", exception)
+            false
         }
     }
 
@@ -218,9 +243,18 @@ class MeetingActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        HMSRoomKit.updateMeetingState(isActive = false)
         super.onDestroy()
         CallForegroundService.stop(this)
         _binding = null
+    }
+
+    override fun onPictureInPictureModeChanged(
+        isInPictureInPictureMode: Boolean,
+        newConfig: Configuration,
+    ) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        HMSRoomKit.updatePictureInPictureState(isInPictureInPictureMode)
     }
 
     private fun initObservers() {

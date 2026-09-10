@@ -149,6 +149,13 @@ class SessionOptionBottomSheet(
             }, isSelected = false,
         )
 
+        val pictureInPictureOption = GridOptionItem(
+            resources.getString(R.string.pip_mode), R.drawable.icon_pip, {
+                dismissAllowingStateLoss()
+                (activity as? MeetingActivity)?.enterPictureInPictureFromManualAction()
+            }, isSelected = false
+        )
+
         val recordingOption = GridOptionItem(
             resources.getString(R.string.start_record_meeting), R.drawable.ic_record_button_24, {
                 onRecordingClicked.invoke(Runnable {
@@ -191,6 +198,8 @@ class SessionOptionBottomSheet(
         val group: Group = Section().apply {
             if (meetingViewModel.isParticpantListEnabled())
             add(peerListOption)
+            if ((activity as? MeetingActivity)?.isPictureInPictureSupported() == true)
+                add(pictureInPictureOption)
             if (meetingViewModel.isWhiteBoardAdmin())
             add(whiteboard)
             if (meetingViewModel.isBRBEnabled())
