@@ -13,7 +13,7 @@ internal object PipUtils {
     fun  getEndCallBroadcast(activity: Activity): PendingIntent = PendingIntent.getBroadcast(
         activity,
         345,
-        Intent(PIP_ACTION_EVENT).putExtra(disconnectCallPipEvent, 345),
+        Intent(PIP_ACTION_EVENT).setPackage(activity.packageName).putExtra(disconnectCallPipEvent, 345),
         PendingIntent.FLAG_IMMUTABLE
     )
 
@@ -21,7 +21,7 @@ internal object PipUtils {
     fun getToggleMuteBroadcast(activity: Activity) = PendingIntent.getBroadcast(
         activity,
         344,
-        Intent(PIP_ACTION_EVENT).putExtra(muteTogglePipEvent, 344),
+        Intent(PIP_ACTION_EVENT).setPackage(activity.packageName).putExtra(muteTogglePipEvent, 344),
         PendingIntent.FLAG_IMMUTABLE
     )
 

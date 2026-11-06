@@ -115,7 +115,11 @@ abstract class VideoGridBaseFragment : Fragment() {
   protected val maxItems: Int
     get() = gridRowCount * gridColumnCount
 
-  private fun updateGridLayoutDimensions(layout: GridLayout) {
+  protected fun updateGridLayoutDimensions(layout: GridLayout) {
+    if (isInPipMode()) {
+      updatePipGridLayout(layout)
+      return
+    }
 
     var childIdx: Pair<Int, Int>? = null
     var colIdx = 0
@@ -422,6 +426,7 @@ abstract class VideoGridBaseFragment : Fragment() {
     for (view in renderedViews) {
       bindVideo(view.binding.videoCard, view.meetingTrack)
     }
+    if (isInPipMode()) applyPipDecorations()
 
     if (requiresGridLayoutUpdate) {
       updateGridLayoutDimensions(layout)
@@ -509,14 +514,88 @@ abstract class VideoGridBaseFragment : Fragment() {
     }
   }
 
+  protected var pipModeOverride: Boolean? = null
+
+  protected fun isInPipMode(): Boolean =
+    pipModeOverride ?: (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N &&
+      activity?.isInPictureInPictureMode == true)
+
+  private val hiddenPipViews = mutableListOf<Pair<View, Int>>()
+  private val shrunkPipNames = mutableListOf<Triple<android.widget.TextView, Float, Int>>()
+
   /**
-   * When onlyIndexToShow has a value it'll show the most active speaker only in pip mode
+   * Applied by the parent screen when PiP is entered or exited. In PiP the grid shows one tile,
+   * without mic or expand icons and with a smaller name label.
    */
-  private fun hideOrShowGridsForPip(onlyIndexToShow : Int? = null) {
-      renderedViews.forEachIndexed { index, renderedViewPair ->
-        if (renderedViewPair.binding.root.isVisible.not())
-          renderedViewPair.binding.root.visibility = View.VISIBLE
+  fun applyPipMode(inPip: Boolean) {
+    pipModeOverride = inPip
+    if (inPip) {
+      applyPipDecorations()
+    } else {
+      hiddenPipViews.forEach { (child, visibility) -> child.visibility = visibility }
+      hiddenPipViews.clear()
+      shrunkPipNames.forEach { (name, textSizePx, maxLines) ->
+        name.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, textSizePx)
+        name.maxLines = maxLines
       }
+      shrunkPipNames.clear()
+    }
+    if (::gridLayout.isInitialized) updateGridLayoutDimensions(gridLayout)
+    if (!inPip) pipModeOverride = null
+  }
+
+  /** Hides mic and expand icons and shrinks names on the current tiles. Safe to call on every grid update. */
+  private fun applyPipDecorations() {
+    renderedViews.forEach { rendered ->
+      val icon = rendered.binding.videoCard.iconAudioOff
+      if (icon.visibility != View.GONE) {
+        hiddenPipViews += icon to icon.visibility
+        icon.visibility = View.GONE
+      }
+    }
+    val roots = renderedViews.map { it.binding.root } + listOfNotNull(view)
+    roots.forEach { root ->
+      root.findViewById<View>(R.id.icon_maximised)?.let { expand ->
+        if (expand.visibility != View.GONE) {
+          hiddenPipViews += expand to expand.visibility
+          expand.visibility = View.GONE
+        }
+      }
+    }
+    renderedViews.forEach { rendered ->
+      rendered.binding.root.findViewById<android.widget.TextView>(R.id.name)?.let { name ->
+        if (shrunkPipNames.none { it.first === name }) {
+          shrunkPipNames += Triple(name, name.textSize, name.maxLines)
+        }
+        name.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
+        name.maxLines = 1
+      }
+    }
+  }
+
+  /**
+   * In PiP only the screen share (or the first tile when nothing is shared) is shown, in a single full-size cell.
+   */
+  private fun updatePipGridLayout(layout: GridLayout) {
+    val mainTile = renderedViews.firstOrNull { it.meetingTrack.isScreen } ?: renderedViews.firstOrNull()
+    // Move every child into the single cell first: GridLayout rejects a smaller count while children still sit in later cells.
+    for (child in layout.children) {
+      val params = child.layoutParams as GridLayout.LayoutParams
+      params.rowSpec = GridLayout.spec(0, 1, 1f)
+      params.columnSpec = GridLayout.spec(0, 1, 1f)
+      child.visibility = if (child === mainTile?.binding?.root) View.VISIBLE else View.GONE
+    }
+    layout.rowCount = 1
+    layout.columnCount = 1
+    layout.requestLayout()
+  }
+
+  private fun hideOrShowGridsForPip(onlyIndexToShow : Int? = null) {
+    if (isInPipMode()) return
+    renderedViews.forEach { renderedViewPair ->
+      if (renderedViewPair.binding.root.isVisible.not())
+        renderedViewPair.binding.root.visibility = View.VISIBLE
+    }
   }
 
   override fun onResume() {
@@ -556,10 +635,14 @@ abstract class VideoGridBaseFragment : Fragment() {
 
   override fun onPause() {
     super.onPause()
-      isFragmentVisible = false
-      unbindViews()
-
-
+    if (isInPipMode()) {
+      // Keep the surfaces bound so the screen share keeps rendering in PiP.
+      wasLastModePip = true
+      if (::gridLayout.isInitialized) updateGridLayoutDimensions(gridLayout)
+      return
+    }
+    isFragmentVisible = false
+    unbindViews()
   }
 
   fun unbindViews() {

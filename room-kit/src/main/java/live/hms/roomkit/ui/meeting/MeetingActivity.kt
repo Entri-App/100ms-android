@@ -255,6 +255,15 @@ class MeetingActivity : AppCompatActivity() {
     ) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         HMSRoomKit.updatePictureInPictureState(isInPictureInPictureMode)
+        findMeetingFragment(supportFragmentManager)?.setPipChromeVisible(!isInPictureInPictureMode)
+    }
+
+    private fun findMeetingFragment(fragmentManager: androidx.fragment.app.FragmentManager): MeetingFragment? {
+        for (fragment in fragmentManager.fragments) {
+            if (fragment is MeetingFragment) return fragment
+            findMeetingFragment(fragment.childFragmentManager)?.let { return it }
+        }
+        return null
     }
 
     private fun initObservers() {

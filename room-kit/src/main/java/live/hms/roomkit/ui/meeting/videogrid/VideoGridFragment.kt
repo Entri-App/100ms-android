@@ -156,6 +156,20 @@ class VideoGridFragment : Fragment() {
         }
     }
 
+    private var isPipActive = false
+
+    fun onPipModeChanged(inPip: Boolean) {
+        if (view == null) return
+        isPipActive = inPip
+        val screenShareVisible = binding.screenShareContainer.visibility == View.VISIBLE
+        val hidePeerGrid = inPip && screenShareVisible
+        binding.viewPagerVideoGrid.visibility = if (hidePeerGrid) View.GONE else View.VISIBLE
+        binding.divider.setGuidelinePercent(if (hidePeerGrid) 1f else lastGuideLinePercentage)
+        childFragmentManager.fragments
+            .filterIsInstance<live.hms.roomkit.ui.meeting.commons.VideoGridBaseFragment>()
+            .forEach { it.applyPipMode(inPip) }
+    }
+
     override fun onPause() {
         super.onPause()
         if (localMeeting == null) return
@@ -490,6 +504,7 @@ class VideoGridFragment : Fragment() {
                     binding.divider.setGuidelinePercent(newGuideLinePercentage)
                     lastGuideLinePercentage = newGuideLinePercentage
                 }
+                if (isPipActive) onPipModeChanged(true)
 
                 if (screenShareTrackList.size > 1 && hasScreenShareOverriddenWhiteboard) {
                     binding.tabLayoutDotsRemoteScreenShare.show()

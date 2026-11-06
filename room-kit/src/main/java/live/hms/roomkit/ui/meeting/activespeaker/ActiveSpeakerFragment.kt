@@ -141,10 +141,38 @@ class ActiveSpeakerFragment : VideoGridBaseFragment() {
 
   private fun screenShareOverLocalVideoInGrid() {
     //hide video grid when screen share is shown!
-    binding.container.visibility = if (screenShareTrack != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && activity?.isInPictureInPictureMode == true) {
+    binding.container.visibility = if (screenShareTrack != null && isInPipMode()) {
         View.GONE
     } else {
         View.VISIBLE
+    }
+  }
+
+  private val hiddenMicIcons = mutableListOf<Pair<View, Int>>()
+
+  /**
+   * Called by the meeting screen when PiP is entered or exited. In PiP only the screen share (or one tile) is shown, without mic icons.
+   */
+  fun onPipModeChanged(inPip: Boolean) {
+    if (view == null) return
+    pipModeOverride = inPip
+    if (inPip) {
+      screenShareOverLocalVideoInGrid()
+      binding.screenShareContainer.visibility = if (screenShareTrack != null) View.VISIBLE else View.GONE
+      renderedViews.forEach { rendered ->
+        val icon = rendered.binding.videoCard.iconAudioOff
+        if (icon.visibility != View.GONE) {
+          hiddenMicIcons += icon to icon.visibility
+          icon.visibility = View.GONE
+        }
+      }
+      updateGridLayoutDimensions(binding.container)
+    } else {
+      hiddenMicIcons.forEach { (icon, visibility) -> icon.visibility = visibility }
+      hiddenMicIcons.clear()
+      screenShareOverLocalVideoInGrid()
+      updateGridLayoutDimensions(binding.container)
+      pipModeOverride = null
     }
   }
 

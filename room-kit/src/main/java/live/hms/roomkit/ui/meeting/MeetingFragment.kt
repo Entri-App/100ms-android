@@ -208,6 +208,11 @@ class MeetingFragment : Fragment() {
             }
         }
 
+    override fun onDestroyView() {
+        unregisterPipActionListener()
+        super.onDestroyView()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         isCountdownManuallyCancelled = true
@@ -294,6 +299,8 @@ class MeetingFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.applyTheme()
         addComposable(binding.composeView)
+        registerPipActionListener()
+        updatePipEndCall()
 
         if (savedInstanceState != null) {
             // Recreated Fragment
@@ -776,7 +783,7 @@ class MeetingFragment : Fragment() {
         meetingViewModel.isLocalAudioPresent.observe(viewLifecycleOwner) { allowed ->
             binding.buttonToggleAudio.visibility = if (allowed) View.VISIBLE else View.GONE
             //to show or hide mic icon [eg in HLS mode mic is not required]
-
+            updatePipMicState(allowed, meetingViewModel.isLocalAudioEnabled.value == true)
         }
 
         meetingViewModel.isLocalVideoPresent.observe(viewLifecycleOwner) { allowed ->
@@ -800,6 +807,7 @@ class MeetingFragment : Fragment() {
 
         meetingViewModel.isLocalAudioEnabled.observe(viewLifecycleOwner) { enabled ->
             //enable/disable mic on/off state
+            updatePipMicState(meetingViewModel.isLocalAudioPresent.value == true, enabled)
             (binding.buttonToggleAudio as? ShapeableImageView)?.apply {
 
                 if (enabled) {
@@ -838,12 +846,42 @@ class MeetingFragment : Fragment() {
     }
 
 
+    private val pipHiddenViews = mutableListOf<Pair<View, Int>>()
+
+    fun setPipChromeVisible(visible: Boolean) {
+        val root = view as? ViewGroup ?: return
+        val mainSpeaker = binding.fragmentContainer
+        val hostedFragment = childFragmentManager.findFragmentById(R.id.fragment_container)
+        (hostedFragment as? ActiveSpeakerFragment)?.onPipModeChanged(!visible)
+        (hostedFragment as? VideoGridFragment)?.onPipModeChanged(!visible)
+        if (visible) {
+            pipHiddenViews.forEach { (child, visibility) -> child.visibility = visibility }
+            pipHiddenViews.clear()
+        } else {
+            if (pipHiddenViews.isNotEmpty()) return
+            for (index in 0 until root.childCount) {
+                val child = root.getChildAt(index)
+                if (child === mainSpeaker || child.visibility == View.GONE) continue
+                pipHiddenViews += child to child.visibility
+                child.visibility = View.GONE
+            }
+        }
+    }
+
+    private var isPipActionListenerRegistered = false
+
     private fun registerPipActionListener() {
-        activity?.let { pipReceiver.register(it) }
+        if (isPipActionListenerRegistered) return
+        activity?.let {
+            pipReceiver.register(it)
+            isPipActionListenerRegistered = true
+        }
     }
 
     private fun unregisterPipActionListener() {
+        if (!isPipActionListenerRegistered) return
         activity?.let { pipReceiver.unregister(it) }
+        isPipActionListenerRegistered = false
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
